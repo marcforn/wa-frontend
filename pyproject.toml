@@ -1,0 +1,12 @@
+[project]
+name = "wealth-assistant-frontend"
+version = "0.1.0"
+description = "A basic Streamlit app with two pages."
+requires-python = ">=3.8"
+
+[project.dependencies]
+streamlit = "*"
+
+[build-system]
+requires = ["uv"]
+build-backend = "uv.build" 
