@@ -1,11 +1,11 @@
 # TODO
 
 ## Today
+* Upload two repos in git
 * Run in devcontainer
 
 
 ## This week
-* Upload two repos in git
 * Have two repos in parallel interconnected 
 
 
