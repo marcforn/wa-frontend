@@ -12,7 +12,7 @@ COPY pyproject.toml ./
 COPY src ./src
 
 # Install dependencies with uv
-RUN uv pip install --system streamlit
+RUN uv pip install --system .
 
 # Expose Streamlit port
 EXPOSE 8501
