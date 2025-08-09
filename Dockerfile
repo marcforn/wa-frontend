@@ -1,18 +1,19 @@
 # Use official Python image
 FROM python:3.13-slim
 
-# Install uv
 RUN pip install uv
 
 # Set work directory
 WORKDIR /app
 
-# Copy project files
-COPY pyproject.toml ./
-COPY src ./src
+# Copy dependency files (pyproject + lockfile)
+COPY pyproject.toml uv.lock ./
 
-# Install dependencies with uv
-RUN uv pip install --system .
+# Install dependencies from lockfile (reproducible)
+RUN uv pip sync --frozen --system
+
+# Copy application code
+COPY src ./src
 
 # Expose Streamlit port
 EXPOSE 8501

@@ -7,17 +7,17 @@ from dotenv import load_dotenv
 load_dotenv()
 st.set_page_config(page_title="Wealth Assistant", page_icon="💼", layout="wide")
 
-def fetch_notifications_hello():
+def fetch_notifications_health():
     notifications_service_url = os.getenv("NOTIFICATIONS_URL")
     if not notifications_service_url:
         raise EnvironmentError("NOTIFICATIONS_URL environment variable is not set.")
 
-    url = f"{notifications_service_url.rstrip('/')}/hello"
+    url = f"{notifications_service_url.rstrip('/')}/health"
     st.write(f"Calling notifications endpoint: {url}")
     try:
         response = requests.get(url, timeout=10)
         if response.status_code == 200:
-            st.write("/hello response:")
+            st.write("/health response:")
             st.json(response.json())
         else:
             st.error(f"Request failed: {response.status_code} - {response.text}")
@@ -27,12 +27,29 @@ def fetch_notifications_hello():
 
 def notifications_page():
     st.header("Notifications")
-    fetch_notifications_hello()
+    fetch_notifications_health()
 
 
 def reits_page():
     st.header("REITs")
-    st.info("REITs section coming soon.")
+    fetch_reits_health()
+
+def fetch_reits_health():
+    reits_service_url = os.getenv("REITS_URL")
+    if not reits_service_url:
+        raise EnvironmentError("REITS_URL environment variable is not set.")
+
+    url = f"{reits_service_url.rstrip('/')}/health"
+    st.write(f"Calling REITs endpoint: {url}")
+    try:
+        response = requests.get(url, timeout=10)
+        if response.status_code == 200:
+            st.write("/hello response:")
+            st.json(response.json())
+        else:
+            st.error(f"Request failed: {response.status_code} - {response.text}")
+    except Exception as e:
+        st.error(f"Error connecting to REITs service: {e}")
 
 def main():
     st.sidebar.title("Navigation")
