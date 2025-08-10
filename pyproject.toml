@@ -1,7 +1,7 @@
 [project]
 name = "wealth-assistant-frontend"
 version = "0.1.0"
-description = "A basic Streamlit app with two pages."
+description = "A multi-page Streamlit app for wealth management with REITs, Stocks, and Portfolio pages."
 
 requires-python = "==3.13.*"
 
