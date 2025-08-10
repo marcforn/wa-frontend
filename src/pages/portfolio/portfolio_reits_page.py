@@ -6,7 +6,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 
-st.title("📈 Portfolio Stocks")
+st.title("🏘 Portfolio REITs")
 st.markdown(
     """
     Get a comprehensive overview of all the stocks in your investment portfolio.
@@ -15,5 +15,4 @@ st.markdown(
     """
 )
 
-# Portfolio overview
 st.header("Under construction..")
