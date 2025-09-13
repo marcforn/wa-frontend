@@ -1,16 +1,10 @@
 [project]
 name = "wealth-assistant-frontend"
-version = "0.1.0"
+version = "0.2.0"
 description = "A multi-page Streamlit app for wealth management with REITs, Stocks, and Portfolio pages."
-
 requires-python = "==3.13.*"
-
-dependencies = [
-    "streamlit==1.48.0",
-    "requests==2.32.3",
-    "python-dotenv==1.0.1"
-]
+dependencies = [ "streamlit==1.48.0", "requests==2.32.3", "python-dotenv==1.0.1",]
 
 [build-system]
-requires = ["setuptools", "wheel"]
+requires = [ "setuptools", "wheel",]
 build-backend = "setuptools.build_meta"
