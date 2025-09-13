@@ -51,7 +51,7 @@ jobs:
           image: ${{ env.GAR_LOCATION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.SERVICE }}/${{ env.SERVICE }}:${{ github.sha }}
           flags: |
             --memory=512Mi
-            --cpu=0.5
+            --cpu=1
             --min-instances=0
             --max-instances=2
             --concurrency=100
