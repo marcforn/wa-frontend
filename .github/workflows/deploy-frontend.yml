@@ -15,13 +15,96 @@ env:
 jobs:
   deploy:
     permissions:
-      contents: read
+      contents: write
       id-token: write
 
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.13'
+
+      - name: Bump version and push tag
+        id: version_bump
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        working-directory: frontend
+        run: |
+          # Install toml library for Python
+          pip install toml
+
+          # Get current version from pyproject.toml
+          CURRENT_VERSION=$(python3 -c "import toml; print(toml.load('pyproject.toml')['project']['version'])")
+          echo "Current version: $CURRENT_VERSION"
+
+          # Get commit message
+          COMMIT_MSG="${{ github.event.head_commit.message }}"
+          echo "Commit message: $COMMIT_MSG"
+
+          # Determine bump type from commit message
+          if [[ $COMMIT_MSG == *"BREAKING CHANGE"* ]] || [[ $COMMIT_MSG == *"!"* ]] || [[ $COMMIT_MSG == *"major:"* ]]; then
+            BUMP_TYPE="major"
+          elif [[ $COMMIT_MSG == *"feat:"* ]] || [[ $COMMIT_MSG == *"feature:"* ]]; then
+            BUMP_TYPE="minor"
+          else
+            BUMP_TYPE="patch"
+          fi
+
+          echo "Bump type: $BUMP_TYPE"
+
+          # Parse version and bump accordingly
+          IFS='.' read -ra VERSION_PARTS <<< "$CURRENT_VERSION"
+          MAJOR=${VERSION_PARTS[0]}
+          MINOR=${VERSION_PARTS[1]}
+          PATCH=${VERSION_PARTS[2]}
+
+          case $BUMP_TYPE in
+            "major")
+              MAJOR=$((MAJOR + 1))
+              MINOR=0
+              PATCH=0
+              ;;
+            "minor")
+              MINOR=$((MINOR + 1))
+              PATCH=0
+              ;;
+            "patch")
+              PATCH=$((PATCH + 1))
+              ;;
+          esac
+
+          NEW_VERSION="$MAJOR.$MINOR.$PATCH"
+          echo "New version: $NEW_VERSION"
+
+          # Update pyproject.toml with new version
+          python3 -c "import toml; data = toml.load('pyproject.toml'); data['project']['version'] = '$NEW_VERSION'; toml.dump(data, open('pyproject.toml', 'w'))"
+
+          # Set output for later steps
+          echo "new_version=$NEW_VERSION" >> $GITHUB_OUTPUT
+          echo "version_changed=true" >> $GITHUB_OUTPUT
+
+      - name: Commit version bump and create tag
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main' && steps.version_bump.outputs.version_changed == 'true'
+        working-directory: frontend
+        run: |
+          # Configure git
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+
+          # Commit version change
+          git add pyproject.toml
+          git commit -m "chore: bump version to ${{ steps.version_bump.outputs.new_version }}"
+
+          # Create and push tag
+          git tag "v${{ steps.version_bump.outputs.new_version }}"
+          git push origin HEAD:${{ github.ref }}
+          git push origin "v${{ steps.version_bump.outputs.new_version }}"
 
       - name: Google Auth
         id: auth
@@ -38,9 +121,29 @@ jobs:
           password: ${{ secrets.GCP_SA_KEY }}
 
       - name: Build and Push Container
-        run: |-
-          docker build -t "${{ env.GAR_LOCATION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.SERVICE }}/${{ env.SERVICE }}:${{ github.sha }}" ./
-          docker push "${{ env.GAR_LOCATION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.SERVICE }}/${{ env.SERVICE }}:${{ github.sha }}"
+        id: build
+        working-directory: frontend
+        run: |
+          # Use version tag if available, otherwise use commit SHA
+          if [[ "${{ steps.version_bump.outputs.new_version }}" != "" ]]; then
+            IMAGE_TAG="v${{ steps.version_bump.outputs.new_version }}"
+          else
+            IMAGE_TAG="${{ github.sha }}"
+          fi
+
+          echo "Building with tag: $IMAGE_TAG"
+
+          docker build -t "${{ env.GAR_LOCATION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.SERVICE }}/${{ env.SERVICE }}:$IMAGE_TAG" ./
+          docker push "${{ env.GAR_LOCATION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.SERVICE }}/${{ env.SERVICE }}:$IMAGE_TAG"
+
+          # Also tag as latest for main branch
+          if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
+            docker tag "${{ env.GAR_LOCATION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.SERVICE }}/${{ env.SERVICE }}:$IMAGE_TAG" "${{ env.GAR_LOCATION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.SERVICE }}/${{ env.SERVICE }}:latest"
+            docker push "${{ env.GAR_LOCATION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.SERVICE }}/${{ env.SERVICE }}:latest"
+          fi
+
+          # Set output for deploy step
+          echo "image_tag=$IMAGE_TAG" >> $GITHUB_OUTPUT
 
       - name: Deploy to Cloud Run
         id: deploy
@@ -48,7 +151,7 @@ jobs:
         with:
           service: ${{ env.SERVICE }}
           region: ${{ env.REGION }}
-          image: ${{ env.GAR_LOCATION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.SERVICE }}/${{ env.SERVICE }}:${{ github.sha }}
+          image: ${{ env.GAR_LOCATION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.SERVICE }}/${{ env.SERVICE }}:${{ steps.build.outputs.image_tag }}
           flags: |
             --memory=512Mi
             --cpu=1

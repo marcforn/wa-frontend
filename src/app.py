@@ -2,9 +2,21 @@ import streamlit as st
 import requests
 import os
 from dotenv import load_dotenv
+import tomllib
+from datetime import datetime
 
 # Load environment variables from .env file
 load_dotenv()
+
+def get_version_info():
+    try:
+        with open(os.path.join(os.path.dirname(__file__), "..", "pyproject.toml"), "rb") as f:
+            data = tomllib.load(f)
+            version = data.get("project", {}).get("version", "Unknown")
+
+        return version
+    except:
+        return "Unknown", "Unknown"
 
 st.set_page_config(
     page_title="Wealth Assistant",
@@ -74,4 +86,10 @@ pages = {
 }
 
 pg = st.navigation(pages)
+
 pg.run()
+
+# Display version info at the bottom of the page
+st.markdown("---")
+version = get_version_info()
+st.markdown(f"**Version:** {version}")
