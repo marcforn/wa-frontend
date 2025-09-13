@@ -34,7 +34,6 @@ jobs:
       - name: Bump version and push tag
         id: version_bump
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-        working-directory: frontend
         run: |
           # Install toml library for Python
           pip install toml
@@ -91,7 +90,6 @@ jobs:
 
       - name: Commit version bump and create tag
         if: github.event_name == 'push' && github.ref == 'refs/heads/main' && steps.version_bump.outputs.version_changed == 'true'
-        working-directory: frontend
         run: |
           # Configure git
           git config --local user.email "action@github.com"
@@ -122,7 +120,6 @@ jobs:
 
       - name: Build and Push Container
         id: build
-        working-directory: frontend
         run: |
           # Use version tag if available, otherwise use commit SHA
           if [[ "${{ steps.version_bump.outputs.new_version }}" != "" ]]; then
