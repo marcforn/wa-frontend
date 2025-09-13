@@ -32,7 +32,7 @@ COPY --chown=appuser:appuser src ./src
 
 # Add health check with more reliable endpoint
 HEALTHCHECK --interval=30s --timeout=10s --start-period=10s --retries=3 \
-    CMD curl -f http://localhost:8501/ || exit 1
+    CMD curl -f http://localhost:8080/ || exit 1
 
 # Run the app
-CMD ["uv", "run", "streamlit", "run", "src/app.py", "--server.port=8501", "--server.address=0.0.0.0"] 
+CMD ["uv", "run", "streamlit", "run", "src/app.py", "--server.port=8080", "--server.address=0.0.0.0"] 

@@ -1,4 +1,4 @@
-name: Deploy Frontend to Cloud Run
+name: Deploy Wealth Assistant Frontend to Cloud Run
 
 on:
   push:
@@ -49,6 +49,14 @@ jobs:
           service: ${{ env.SERVICE }}
           region: ${{ env.REGION }}
           image: ${{ env.GAR_LOCATION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.SERVICE }}/${{ env.SERVICE }}:${{ github.sha }}
+          flags: |
+            --memory=512Mi
+            --cpu=0.5
+            --min-instances=0
+            --max-instances=2
+            --concurrency=100
+            --timeout=300
+            --port=8080
 
       - name: Show Output
         run: echo ${{ steps.deploy.outputs.url }}
