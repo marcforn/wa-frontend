@@ -9,7 +9,7 @@ load_dotenv()
 st.set_page_config(
     page_title="Wealth Assistant",
     page_icon="🚀",
-    layout="wide",
+    layout="centered",
     initial_sidebar_state="expanded",
 )
 
@@ -59,13 +59,13 @@ pages = {
     ],
     "Analyzers": [
             st.Page(
-            page="pages/analyzer/analyzer_reits_page.py",
+            page="pages/analyzer/reit_analyzer_page.py",
             title="REITs Analyzer",
             icon="🏘",
             url_path="analyzer_reits",
         ),
         st.Page(
-            page="pages/analyzer/analyzer_stocks_page.py",
+            page="pages/analyzer/stock_analyzer_page.py",
             title="Stocks Analyzer",
             icon="📈",
             url_path="analyzer_stocks",
