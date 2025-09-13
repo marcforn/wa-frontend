@@ -1,25 +1,35 @@
 # Use official Python image
 FROM python:3.13-slim
 
-# Install uv dependency manager
-RUN pip install uv
+# Install uv dependency manager and curl for health checks
+RUN pip install uv && \
+    apt-get update && \
+    apt-get install -y --no-install-recommends curl && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
 
-# Set work directory
+# Create non-root user
+RUN groupadd -r appuser && useradd -r -g appuser appuser
+
+# Set work directory and change ownership
 WORKDIR /app
+RUN chown -R appuser:appuser /app
+
+# Switch to non-root user for dependency installation
+USER appuser
 
 # Copy dependency files (pyproject + lockfile)
-COPY pyproject.toml uv.lock ./
+COPY --chown=appuser:appuser pyproject.toml uv.lock ./
 
-# Install dependencies from uv.lock file
-RUN uv sync
-
-# Activate the virtual environment and add to PATH
-ENV PATH="/app/.venv/bin:$PATH"
+# Install project dependencies using frozen lock file
+RUN uv sync --frozen
 
 # Copy application code
-COPY src ./src
+COPY --chown=appuser:appuser src ./src
 
-# Expose Streamlit port
-EXPOSE 8501
+# Add health check with more reliable endpoint
+HEALTHCHECK --interval=30s --timeout=10s --start-period=10s --retries=3 \
+    CMD curl -f http://localhost:8501/ || exit 1
 
-CMD ["streamlit", "run", "src/app.py", "--server.port=8501", "--server.address=0.0.0.0"] 
+# Run the app
+CMD ["uv", "run", "streamlit", "run", "src/app.py", "--server.port=8501", "--server.address=0.0.0.0"] 
