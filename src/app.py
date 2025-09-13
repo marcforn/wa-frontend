@@ -62,13 +62,13 @@ pages = {
             page="pages/analyzer/reit_analyzer_page.py",
             title="REITs Analyzer",
             icon="🏘",
-            url_path="analyzer_reits",
+            url_path="reit_analyzer",
         ),
         st.Page(
             page="pages/analyzer/stock_analyzer_page.py",
             title="Stocks Analyzer",
             icon="📈",
-            url_path="analyzer_stocks",
+            url_path="stock_analyzer",
         ),
     ],
 }

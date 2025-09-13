@@ -1,4 +1,4 @@
-import asyncio
+import time
 
 import streamlit as st
 from dotenv import load_dotenv
@@ -10,7 +10,6 @@ if 'show_form' not in st.session_state:
     st.session_state.show_form = True
 if 'analysis_completed' not in st.session_state:
     st.session_state.analysis_completed = False
-
 
 st.title("🏘 REIT Analyzer")
 st.markdown(
@@ -117,16 +116,15 @@ if st.session_state.show_form:
 
             # Show loading spinner
             with st.spinner('Analyzing investment... Please wait.'):
-                import time
-                time.sleep(5)  # Simulate API call delay
+                time.sleep(2)  # Simulate API call delay
 
             # Update session state
             st.session_state.show_form = False
             st.session_state.analysis_completed = True
             st.rerun()
 
-# Show results if analysis is completed
-if st.session_state.analysis_completed and not st.session_state.show_form:
+# Show results if analysis is completed and form_data exists
+if st.session_state.analysis_completed and not st.session_state.show_form and 'form_data' in st.session_state:
 
     # Get data from session state
     data = st.session_state.form_data
@@ -167,7 +165,7 @@ if st.session_state.analysis_completed and not st.session_state.show_form:
     annual_rent = monthly_rent * 12
 
     # Mock calculations
-    monthly_mortgage_payment = loan_amount * (mortgage_interest/100/12) * ((1 + mortgage_interest/100/12)**(mortgage_years*12)) / (((1 + mortgage_interest/100/12)**(mortgage_years*12)) - 1)
+    monthly_mortgage_payment = loan_amount * (mortgage_interest / 100 / 12) * ((1 + mortgage_interest / 100 / 12) ** (mortgage_years * 12)) / (((1 + mortgage_interest / 100 / 12) ** (mortgage_years * 12)) - 1)
     annual_mortgage_payment = monthly_mortgage_payment * 12
     net_annual_income = annual_rent - annual_mortgage_payment
     roi = (net_annual_income / down_payment) * 100 if down_payment > 0 else 0
@@ -192,8 +190,8 @@ if st.session_state.analysis_completed and not st.session_state.show_form:
     with col3:
         st.metric(
             label="🏠 Property Value (5Y)",
-            value=f"€{purchase_price * (1 + revaluation/100)**5:,.0f}",
-            delta=f"+€{purchase_price * (1 + revaluation/100)**5 - purchase_price:,.0f}"
+            value=f"€{purchase_price * (1 + revaluation / 100) ** 5:,.0f}",
+            delta=f"+€{purchase_price * (1 + revaluation / 100) ** 5 - purchase_price:,.0f}"
         )
 
     # Detailed breakdown

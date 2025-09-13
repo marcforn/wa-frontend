@@ -15,6 +15,9 @@ RUN groupadd -r appuser && useradd -r -g appuser appuser
 WORKDIR /app
 RUN chown -R appuser:appuser /app
 
+# Create UV cache directory with proper permissions
+RUN mkdir -p /home/appuser/.cache/uv && chown -R appuser:appuser /home/appuser/.cache
+
 # Switch to non-root user for dependency installation
 USER appuser
 
