@@ -1,12 +1,12 @@
-import streamlit as st
-import requests
 import os
-from dotenv import load_dotenv
 import tomllib
-from datetime import datetime
+
+import streamlit as st
+from dotenv import load_dotenv
 
 # Load environment variables from .env file
 load_dotenv()
+
 
 def get_version_info():
     try:
@@ -15,14 +15,22 @@ def get_version_info():
             version = data.get("project", {}).get("version", "Unknown")
 
         return version
-    except:
+    except FileNotFoundError:
         return "Unknown", "Unknown"
+
+
+version = get_version_info()
 
 st.set_page_config(
     page_title="Wealth Assistant",
     page_icon="🚀",
     layout="centered",
-    initial_sidebar_state="expanded",
+    initial_sidebar_state="auto",
+    menu_items={
+        'about': f'''**💰 Wealth Assistant v{version}**
+        A comprehensive wealth management application for tracking portfolios, analyzing investments, and managing financial assets.
+        '''
+    }
 )
 
 pages = {
@@ -62,7 +70,7 @@ pages = {
             title="Crypto",
             icon="🌖",
             url_path="portfolio_crypto",
-        ),st.Page(
+        ), st.Page(
             page="pages/portfolio/portfolio_reits_page.py",
             title="REITs",
             icon="🏘",
@@ -70,7 +78,7 @@ pages = {
         ),
     ],
     "Analyzers": [
-            st.Page(
+        st.Page(
             page="pages/analyzer/reit_analyzer_page.py",
             title="REITs Analyzer",
             icon="🏘",
@@ -85,11 +93,9 @@ pages = {
     ],
 }
 
-pg = st.navigation(pages)
+pg = st.navigation(pages=pages, position="sidebar")
 
 pg.run()
 
-# Display version info at the bottom of the page
-st.markdown("---")
-version = get_version_info()
-st.markdown(f"**Version:** {version}")
+# Display app version
+st.sidebar.caption(f"v{version}")
